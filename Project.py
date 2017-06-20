@@ -68,9 +68,8 @@ def unirand(seq):
         if rnd < freq_:
             return token
 
-def generate_sentence(model,p):
-    phrase = p
-    t0, t1 = '$', p
+def generate_sentence(model, p1, p2, phrase):
+    t0, t1 = p2, p1
     while 1:
         t0, t1 = t1, unirand(model[t0, t1])
         if t1 == '$': break
@@ -78,6 +77,7 @@ def generate_sentence(model,p):
             phrase += t1
         else:
             phrase += ' ' + t1
+    phrase = phrase.replace('$', '')
     return phrase.capitalize()
 
 model = train('/home/kidorashi/mysite/shakespeare.txt')
@@ -98,9 +98,14 @@ def send_texts(message):
 def reply(message):
     phrase = message.text.lower()
     phrase = phrase.split()
-    phrase = phrase[-1].rstrip('.,:;?!')
+    p1 = phrase[-1].rstrip('.,:;?!')
+    if len(phrase) == 1:
+        p2='$'
+    else:
+        p2 = phrase[-2].rstrip('.,:;?!')
+    phrase = p2+ ' ' +p1
     try:
-        reply = generate_sentence(model, phrase)
+        reply = generate_sentence(model, p1, p2, phrase)
     except:
         reply = 'Что-то пошло не так. Причин может быть несколько.' + '\n' + '1. В моей коллекции не нашлось подходящих слов для ответа.' + '\n' + '2. Ты написал не по-русски. Шекспир, конечно, был англичанином. Но я то нет.' + '\n' + '3. Мой создатель где-то напортачил. Но это вряд ли, он программист, лингвист и вообще умничка.' + '\n' + 'Попробуй написать ещё.'
     bot.send_message(message.chat.id, reply)
